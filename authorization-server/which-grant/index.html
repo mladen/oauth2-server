@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+            <link rel="icon" type="image/x-icon" href="/themes/thephpleague/thephpleague.github.com/img/favicon.ico" />
+                <link rel="apple-touch-icon-precomposed" href="/themes/thephpleague/thephpleague.github.com/img/apple-touch-icon-precomposed.png">
+                <title>Which OAuth 2.0 grant should I use? - OAuth 2.0 Server</title>
+                <meta name="description" content="A standards compliant OAuth 2.0 server">
+                <link rel="stylesheet" href="/themes/thephpleague/thephpleague.github.com/css/all.css">
+    </head>
+<body>
+
+<section class="all_packages">
+    <a href="http://thephpleague.com/">
+        <img src="/themes/thephpleague/thephpleague.github.com/img/loep_logo.png" width="195" height="200" alt="The League of Extraordinary Packages">
+    </a>
+    <h2>Our Packages:</h2>
+    <ul>
+    </ul>
+</section>
+
+<header>
+    <a class="logo" href="/">
+                <span class="name">OAuth 2.0 Server</span>
+        <span class="tagline">PHP, meet OAuth</span>
+    </a>
+    <a href="http://thephpleague.com/" class="league">
+        Presented by The League of Extraordinary Packages
+    </a>
+</header>
+
+<input type="checkbox" id="menu">
+<label for="menu" onclick>
+    <div class="closed">&#9776; Menu</div>
+    <div class="open">&#9776; Hide Menu</div>
+</label>
+
+<main>
+    <menu>
+                    <h2>Getting Started</h2>
+            <ul>
+                                    <li >
+                        <a href="/">Introduction</a>
+                    </li>
+                                    <li >
+                        <a href="/terminology/">Terminology</a>
+                    </li>
+                                    <li >
+                        <a href="/authorization-server/installation/">Installation</a>
+                    </li>
+                                    <li >
+                        <a href="/implementing-storage-interfaces/">Implementing storage interfaces</a>
+                    </li>
+                            </ul>
+                    <h2>Authorization Server</h2>
+            <ul>
+                                    <li >
+                        <a href="/authorization-server/which-grant/">Which grant?</a>
+                    </li>
+                                    <li >
+                        <a href="/authorization-server/auth-code-grant/">Authorization Code Grant</a>
+                    </li>
+                                    <li >
+                        <a href="/authorization-server/client-credentials-grant/">Client Credentials Grant</a>
+                    </li>
+                                    <li >
+                        <a href="/authorization-server/resource-owner-password-credentials-grant/">Password Grant</a>
+                    </li>
+                                    <li >
+                        <a href="/authorization-server/refresh-token-grant/">Refresh Token Grant</a>
+                    </li>
+                            </ul>
+                    <h2>Resource Server</h2>
+            <ul>
+                            </ul>
+            </menu>
+    <article>
+        <h1>Which OAuth 2.0 grant should I use?</h1>
+
+<p>This page was originally posted at <a href="http://alexbilbie.com/2013/02/a-guide-to-oauth-2-grants/">http://alexbilbie.com/2013/02/a-guide-to-oauth-2-grants/</a>.</p>
+
+<hr />
+
+<p>OAuth 2.0 by it’s nature is a very flexible standard and can be adapted to work in many different scenarios. The <a href="http://tools.ietf.org/html/rfc6749">core specification</a> describes four authorisation grants:</p>
+
+<ul>
+<li>Authorisation code grant</li>
+<li>Implicit grant</li>
+<li>Resource owner credentials grant</li>
+<li>Client credentials grant</li>
+</ul>
+
+<p>The specification also details another grant called the <em>refresh token grant</em>.</p>
+
+<p>Furthermore there are a number of other grants that have gone through the IETF ratification process (none of which at the time of writing have been formally standardised):</p>
+
+<ul>
+<li>Message authentication code (MAC) tokens</li>
+<li>SAML 2.0 Bearer Assertion Profiles</li>
+<li>JSON web token grant</li>
+</ul>
+
+<p>The end goal of each of these grants (except the refresh token grant) is for the client application to have an access token (which represents a user’s permission for the client to access their data) which it can use to authenticate a request to an API endpoint.</p>
+
+<p>This page describes each of the above grants and their appropriate use cases.</p>
+
+<p>As a refresher here is a quick glossary of OAuth terms (taken from the core spec):</p>
+
+<ul>
+<li><strong>Resource owner (a.k.a. the User)</strong> - An entity capable of granting access to a protected resource. When the resource owner is a person, it is referred to as an end-user.</li>
+<li><strong>Resource server (a.k.a. the API server)</strong> - The server hosting the protected resources, capable of accepting and responding to protected resource requests using access tokens.</li>
+<li><strong>Client</strong> - An application making protected resource requests on behalf of the resource owner and with its authorisation. The term client does not imply any particular implementation characteristics (e.g. whether the application executes on a server, a desktop, or other devices).</li>
+<li><strong>Authorisation server</strong> - The server issuing access tokens to the client after successfully authenticating the resource owner and obtaining authorisation.</li>
+</ul>
+
+<h2>Authorisation code grant (<a href="http://tools.ietf.org/html/rfc6749#section-4.1">section 4.1</a>)</h2>
+
+<blockquote>
+  <p>To enable this grant:</p>
+
+<pre><code class="language-php">$authCodeGrant = new \League\OAuth2\Server\Grant\AuthCodeGrant();
+$server-&gt;addGrantType($authCodeGrant);
+</code></pre>
+</blockquote>
+
+<p>The authorisation code grant is the grant that most people think of when OAuth is described.</p>
+
+<p>If you’ve ever signed into a website or application with your Twitter/Facebook/Google/(insert major Internet company here) account then you’ll have experienced using this grant.</p>
+
+<p>Essentially a user will click on a “sign in with Facebook” (or other <attr title=“Identity Provider”>IdP</attr>) and then be redirected from the application/website (the “client”) to the IdP authorisation server. The user will then sign in to the IdP with their credentials, and then - if they haven’t already - authorise the client to allow it to use the user’s data (such as their name, email address, etc). If they authorise the request the user will be redirected back to the client with a token (called the authorisation code) in the query string (e.g. <code>http://client.com/redirect?code=XYZ123</code>) which the client will capture and exchange for an access token in the background.</p>
+
+<p>This grant is suitable where the resource owner is a user and they are using a client which is allows a user to interact with a website in a browser. An obvious example is the client being another website, but desktop applications such as Spotify or Reeder use embedded browsers.</p>
+
+<p>Some mobile applications use this flow and again use an embedded browser (or redirect the user to the native browser and then are redirected back to the app using a custom protocol).</p>
+
+<p>In this grant the access token is kept private from the resource owner.</p>
+
+<p>If you have a mobile application that is for your own service (such as the official Spotify or Facebook apps on iOS) it isn’t appropriate to use this grant as the app itself should already be trusted by your authorisation server and so the _resource owner credentials grant would be more appropriate.</p>
+
+<h2>Implicit grant (<a href="http://tools.ietf.org/html/rfc6749#section-4.2">section 4.2</a>)</h2>
+
+<p>The implicit grant is similar to the authentication code grant described above. The user will be redirected in a browser to the IdP authorisation server, sign in, authorise the request but instead of being returned to the client with an authentication code they are redirected with an access token straight away.</p>
+
+<p>The purpose of the implicit grant is for use by clients which are not capable of keeping the client’s own credentials secret; for example a JavaScript only application.</p>
+
+<p><strong>If you decide to implement this grant then you must be aware that the access token should be treated as “public knowledge” (like a public RSA key)</strong> and therefore it must have a very limited permissions when interacting with the API server. For example an access token that was granted using the authentication code grant could have permission to be used to delete resources owned by the user, however an access token granted through the implicit flow should only be able to “read” resources and never perform any destructive operations (i.e. non-idempotent method).</p>
+
+<h2>Resource owner credentials grant (<a href="http://tools.ietf.org/html/rfc6749#section-4.3">section 4.3</a>)</h2>
+
+<blockquote>
+  <p>To enable this grant:</p>
+
+<pre><code class="language-php">$passwordGrant = new \League\OAuth2\Server\Grant\PasswordGrant();
+$passwordGrant-&gt;setVerifyCredentialsCallback(function ($username, $password) {
+  // implement logic here to validate a username and password,
+  // return an ID if valid, return false otherwise
+});
+$server-&gt;addGrantType($passwordGrant);
+</code></pre>
+</blockquote>
+
+<p>When this grant is implemented the client itself will ask the user for their username and password (as opposed to being redirected to an IdP authorisation server to authenticate) and then send these to the authorisation server along with the client’s own credentials.  If the authentication is successful then the client will be issued with an access token.</p>
+
+<p>This grant is suitable for trusted clients such as a service’s own mobile client (for example Spotify’s iOS app). You could also use this in software where it’s not easy to implement the authorisation code - for example we bolted this authorisation grant into <a href="http://owncloud.org/">OwnCloud</a> so we could retrieve details about a user that we couldn’t access over LDAP from the university’s Active Directory server.</p>
+
+<h2>Client credentials grant  (<a href="http://tools.ietf.org/html/rfc6749#section-4.4">section 4.4</a>)</h2>
+
+<blockquote>
+  <p>To enable this grant:</p>
+
+<pre><code class="language-php">$clientCredentials = new \League\OAuth2\Server\Grant\ClientCredentialsGrant();
+$server-&gt;addGrantType($clientCredentials);
+</code></pre>
+</blockquote>
+
+<p>This grant is similar to the resource owner credentials grant except only the client’s credentials are used to authenticate a request for an access token. Again this grant should only be allowed to be used by trusted clients.</p>
+
+<p>This grant is suitable for machine-to-machine authentication, for example for use in a cron job which is performing maintenance tasks over an API. Another example would be a client making requests to an API that don’t require user’s permission.</p>
+
+<p>When someone visits a member of staff’s page on the <a href="http://staff.lincoln.ac.uk/">University of Lincoln staff directory</a> the website uses it’s own access token (that was generated using this grant) to authenticate a request to the API server to get the data about the member of staff that is used to build the page. When a member of staff signs in to update their profile however their own access token is used to retrieve and update their data. Therefore there is a good separation of concerns and we can easily restrict permissions that each type of access token has.</p>
+
+<h2>Refresh token grant (<a href="http://tools.ietf.org/html/rfc6749#section-1.5">section 1.5</a>)</h2>
+
+<blockquote>
+  <p>To enable this grant:</p>
+
+<pre><code class="language-php">$refrehTokenGrant = new \League\OAuth2\Server\Grant\RefreshTokenGrant();
+$server-&gt;addGrantType($refrehTokenGrant);
+</code></pre>
+</blockquote>
+
+<p>The OAuth 2.0 specification also details a fifth grant which can be used to “refresh” (i.e. renew) an access token which has expired.</p>
+
+<p>Authorisation servers which support this grant will also issue a “refresh token” when it returns an access token to a client. When the access token expires instead of sending the user back through the authorisation code grant the client can use to the refresh token to retrieve a new access token with the same permissions as the old one.</p>
+
+<p>A problem with the grant is that it means the client has to maintain state of each token and then either on a cron job keep access tokens up to date or when it tries to make a request and it fails then go and update the access token and repeat the request.</p>
+    </article>
+</main>
+
+<footer>
+    <span>&copy; Copyright The League of Extraordinary Packages.</span>
+    <span>Site design by <a href="http://reinink.ca">Jonathan Reinink</a>.</span>
+    <span>Powered by <a href="https://sculpin.io">Sculpin</a>.</span>
+</footer>
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="/themes/thephpleague/thephpleague.github.com/js/scripts.js"></script>
+<script src="/themes/thephpleague/thephpleague.github.com/js/prism.js"></script>
+
+    <script>
+        (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
+        function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;
+        e=o.createElement(i);r=o.getElementsByTagName(i)[0];
+        e.src='//www.google-analytics.com/analytics.js';
+        r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));
+        ga('create','UA-46050814-5');ga('send','pageview');
+    </script>
+
+</body>
+</html>

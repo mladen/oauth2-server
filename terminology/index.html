@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+            <link rel="icon" type="image/x-icon" href="/themes/thephpleague/thephpleague.github.com/img/favicon.ico" />
+                <link rel="apple-touch-icon-precomposed" href="/themes/thephpleague/thephpleague.github.com/img/apple-touch-icon-precomposed.png">
+                <title> - OAuth 2.0 Server</title>
+                <meta name="description" content="A standards compliant OAuth 2.0 server">
+                <link rel="stylesheet" href="/themes/thephpleague/thephpleague.github.com/css/all.css">
+    </head>
+<body>
+
+<section class="all_packages">
+    <a href="http://thephpleague.com/">
+        <img src="/themes/thephpleague/thephpleague.github.com/img/loep_logo.png" width="195" height="200" alt="The League of Extraordinary Packages">
+    </a>
+    <h2>Our Packages:</h2>
+    <ul>
+    </ul>
+</section>
+
+<header>
+    <a class="logo" href="/">
+                <span class="name">OAuth 2.0 Server</span>
+        <span class="tagline">PHP, meet OAuth</span>
+    </a>
+    <a href="http://thephpleague.com/" class="league">
+        Presented by The League of Extraordinary Packages
+    </a>
+</header>
+
+<input type="checkbox" id="menu">
+<label for="menu" onclick>
+    <div class="closed">&#9776; Menu</div>
+    <div class="open">&#9776; Hide Menu</div>
+</label>
+
+<main>
+    <menu>
+                    <h2>Getting Started</h2>
+            <ul>
+                                    <li >
+                        <a href="/">Introduction</a>
+                    </li>
+                                    <li class="selected">
+                        <a href="/terminology/">Terminology</a>
+                    </li>
+                                    <li >
+                        <a href="/authorization-server/installation/">Installation</a>
+                    </li>
+                                    <li >
+                        <a href="/implementing-storage-interfaces/">Implementing storage interfaces</a>
+                    </li>
+                            </ul>
+                    <h2>Authorization Server</h2>
+            <ul>
+                                    <li >
+                        <a href="/authorization-server/which-grant/">Which grant?</a>
+                    </li>
+                                    <li >
+                        <a href="/authorization-server/auth-code-grant/">Authorization Code Grant</a>
+                    </li>
+                                    <li >
+                        <a href="/authorization-server/client-credentials-grant/">Client Credentials Grant</a>
+                    </li>
+                                    <li >
+                        <a href="/authorization-server/resource-owner-password-credentials-grant/">Password Grant</a>
+                    </li>
+                                    <li >
+                        <a href="/authorization-server/refresh-token-grant/">Refresh Token Grant</a>
+                    </li>
+                            </ul>
+                    <h2>Resource Server</h2>
+            <ul>
+                            </ul>
+            </menu>
+    <article>
+        <h1>Terminology</h1>
+
+<ul>
+<li><code>Access token</code> - A token used to access protected resources</li>
+<li><code>Authorization code</code> - An intermidiary token generated when a user authorizes a client to access protected resources on their behalf. The client receives this token and exchanges it for an access token.</li>
+<li><code>Authorization server</code> - A server which issues access tokens after successfully authenticating a client and resource owner, and authorizing the request.</li>
+<li><code>Client</code> - An application which accesses protected resources on behalf of the resource owner (such as a user).  The client could hosted on a server, desktop, mobile or other device.</li>
+<li><code>Grant</code> - A grant is a method of acquiring an access token.</li>
+<li><code>Resource server</code> - A server which sits in front of protected resources (for example "tweets", users' photos, or personal data) and is capable of accepting and responsing to protected resource requests using access tokens.</li>
+</ul>
+    </article>
+</main>
+
+<footer>
+    <span>&copy; Copyright The League of Extraordinary Packages.</span>
+    <span>Site design by <a href="http://reinink.ca">Jonathan Reinink</a>.</span>
+    <span>Powered by <a href="https://sculpin.io">Sculpin</a>.</span>
+</footer>
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="/themes/thephpleague/thephpleague.github.com/js/scripts.js"></script>
+<script src="/themes/thephpleague/thephpleague.github.com/js/prism.js"></script>
+
+    <script>
+        (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
+        function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;
+        e=o.createElement(i);r=o.getElementsByTagName(i)[0];
+        e.src='//www.google-analytics.com/analytics.js';
+        r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));
+        ga('create','UA-46050814-5');ga('send','pageview');
+    </script>
+
+</body>
+</html>

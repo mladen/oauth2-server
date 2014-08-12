@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+            <link rel="icon" type="image/x-icon" href="/themes/thephpleague/thephpleague.github.com/img/favicon.ico" />
+                <link rel="apple-touch-icon-precomposed" href="/themes/thephpleague/thephpleague.github.com/img/apple-touch-icon-precomposed.png">
+                <title>Authorization server with resource owner password credentials grant - OAuth 2.0 Server</title>
+                <meta name="description" content="A standards compliant OAuth 2.0 server">
+                <link rel="stylesheet" href="/themes/thephpleague/thephpleague.github.com/css/all.css">
+    </head>
+<body>
+
+<section class="all_packages">
+    <a href="http://thephpleague.com/">
+        <img src="/themes/thephpleague/thephpleague.github.com/img/loep_logo.png" width="195" height="200" alt="The League of Extraordinary Packages">
+    </a>
+    <h2>Our Packages:</h2>
+    <ul>
+    </ul>
+</section>
+
+<header>
+    <a class="logo" href="/">
+                <span class="name">OAuth 2.0 Server</span>
+        <span class="tagline">PHP, meet OAuth</span>
+    </a>
+    <a href="http://thephpleague.com/" class="league">
+        Presented by The League of Extraordinary Packages
+    </a>
+</header>
+
+<input type="checkbox" id="menu">
+<label for="menu" onclick>
+    <div class="closed">&#9776; Menu</div>
+    <div class="open">&#9776; Hide Menu</div>
+</label>
+
+<main>
+    <menu>
+                    <h2>Getting Started</h2>
+            <ul>
+                                    <li >
+                        <a href="/">Introduction</a>
+                    </li>
+                                    <li >
+                        <a href="/terminology/">Terminology</a>
+                    </li>
+                                    <li >
+                        <a href="/authorization-server/installation/">Installation</a>
+                    </li>
+                                    <li >
+                        <a href="/implementing-storage-interfaces/">Implementing storage interfaces</a>
+                    </li>
+                            </ul>
+                    <h2>Authorization Server</h2>
+            <ul>
+                                    <li >
+                        <a href="/authorization-server/which-grant/">Which grant?</a>
+                    </li>
+                                    <li >
+                        <a href="/authorization-server/auth-code-grant/">Authorization Code Grant</a>
+                    </li>
+                                    <li >
+                        <a href="/authorization-server/client-credentials-grant/">Client Credentials Grant</a>
+                    </li>
+                                    <li >
+                        <a href="/authorization-server/resource-owner-password-credentials-grant/">Password Grant</a>
+                    </li>
+                                    <li >
+                        <a href="/authorization-server/refresh-token-grant/">Refresh Token Grant</a>
+                    </li>
+                            </ul>
+                    <h2>Resource Server</h2>
+            <ul>
+                            </ul>
+            </menu>
+    <article>
+        <h1>Authorization server with resource owner password credentials grant</h1>
+
+<h2>Setup</h2>
+
+<p>Wherever you intialise your objects, initialize a new instance of the authorization server and bind the storage interfaces and authorization code grant:</p>
+
+<pre><code class="language-php">$server = new \League\OAuth2\Server\AuthorizationServer;
+
+$server-&gt;setSessionStorage(new Storage\SessionStorage);
+$server-&gt;setAccessTokenStorage(new Storage\AccessTokenStorage);
+$server-&gt;setClientStorage(new Storage\ClientStorage);
+$server-&gt;setScopeStorage(new Storage\ScopeStorage);
+
+$passwordGrant = new \League\OAuth2\Server\Grant\PasswordGrant();
+$passwordGrant-&gt;setVerifyCredentialsCallback(function ($username, $password) {
+    // implement logic here to validate a username and password, return an ID if valid, otherwise return false
+});
+</code></pre>
+
+<p>The client will request an access token so create an <code>/access_token</code> endpoint.</p>
+
+<pre><code class="language-php">$router-&gt;post('/access_token', function (Request $request) use ($server) {
+
+    try {
+
+        $response = $server-&gt;issueAccessToken();
+        return new Response(
+            json_encode($response),
+            200
+            [
+                'Content-type'  =&gt;  'application/json',
+                'Cache-Control' =&gt;  'no-store',
+                'Pragma'        =&gt;  'no-store'
+            ]
+        );
+
+    } catch (\Exception $e) {
+
+        return new Response(
+            json_encode([
+                'error'     =&gt;  $e-&gt;errorType,
+                'message'   =&gt;  $e-&gt;getMessage()
+            ]),
+            $e-&gt;httpStatusCode,
+            $e-&gt;getHttpHeaders()
+        );
+
+    }
+
+});
+</code></pre>
+    </article>
+</main>
+
+<footer>
+    <span>&copy; Copyright The League of Extraordinary Packages.</span>
+    <span>Site design by <a href="http://reinink.ca">Jonathan Reinink</a>.</span>
+    <span>Powered by <a href="https://sculpin.io">Sculpin</a>.</span>
+</footer>
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="/themes/thephpleague/thephpleague.github.com/js/scripts.js"></script>
+<script src="/themes/thephpleague/thephpleague.github.com/js/prism.js"></script>
+
+    <script>
+        (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
+        function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;
+        e=o.createElement(i);r=o.getElementsByTagName(i)[0];
+        e.src='//www.google-analytics.com/analytics.js';
+        r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));
+        ga('create','UA-46050814-5');ga('send','pageview');
+    </script>
+
+</body>
+</html>
