@@ -95,9 +95,11 @@ $authCodeGrant = new \League\OAuth2\Server\Grant\AuthCodeGrant();
 $server-&gt;addGrantType($authCodeGrant);
 </code></pre>
 
-<p>Next create a route which will respond to a request to <code>/authorize</code> which is where the client will redirect the user to.</p>
+<h2>Implementation</h2>
 
-<pre><code class="language-php">$router-&gt;get('/authorize', function (Request $request) use ($server) {
+<p>Create a route which will respond to a request to <code>/oauth</code> which is where the client will redirect the user to.</p>
+
+<pre><code class="language-php">$router-&gt;get('/oauth', function (Request $request) use ($server) {
 
     // First ensure the parameters in the query string are correct
     try {
@@ -117,28 +119,66 @@ $server-&gt;addGrantType($authCodeGrant);
 
     }
 
-    /*
-        Everything so far checks out. Store $authParams in the users session (preferably encrypted).
+    // Everything is okay, save $authParams to the a session and redirect the user to sign-in
 
-        Next show a web page that tells the user the name of the client, the scopes requested and two buttons, an "Approve" button and a "Deny" button.
+    $response = new Response('', 302, [
+        'Location'  =&gt;  '/signin'
+    ]);
 
-        e.g.
+    return $response;
 
-        &lt;h1&gt;&lt;?= $authParams['client']-&gt;getName() ?&gt; would like to access:&lt;/h1&gt;
+});
+</code></pre>
 
-        &lt;ul&gt;
-            &lt;?php foreach ($authParams['scopes'] as $scope) ?&gt;
-                &lt;li&gt;
-                    &lt;?= $scope-&gt;getName() ?&gt;: &lt;?= $scope-&gt;getDescription() ?&gt;
-                &lt;/li&gt;
-            &lt;?php endforeach; ?&gt;
-        &lt;/ul&gt;
+<p>The user is redirected to a sign-in screen. If the user is not signed in then sign them in.</p>
 
-        &lt;form method="post"&gt;
-            &lt;input type="submit" value="Approve" name="authorization"&gt;
-            &lt;input type="submit" value="Deny" name="authorization"&gt;
-        &lt;/form&gt;
-    */
+<pre><code class="language-php">$router-&gt;get('/signin', function (Request $request) use ($server) {
+
+    if ($user) {
+
+        $response = new Response('', 302, [
+            'Location'  =&gt;  '/authorize'
+        ]);
+
+        return $response;
+
+    } else {
+
+        // Logic here to show the a sign-in form and sign the user in
+
+    }
+
+});
+</code></pre>
+
+<p>The final part is to show a web page that tells the user the name of the client, the scopes requested and two buttons, an "Approve" button and a "Deny" button.</p>
+
+<p>View:</p>
+
+<pre><code class="language-php">// Authorize view
+&lt;h1&gt;&lt;?= $authParams['client']-&gt;getName() ?&gt; would like to access:&lt;/h1&gt;
+
+&lt;ul&gt;
+    &lt;?php foreach ($authParams['scopes'] as $scope): ?&gt;
+        &lt;li&gt;
+            &lt;?= $scope-&gt;getName() ?&gt;: &lt;?= $scope-&gt;getDescription() ?&gt;
+        &lt;/li&gt;
+    &lt;?= endforeach; ?&gt;
+&lt;/ul&gt;
+
+&lt;form method="post"&gt;
+    &lt;input type="submit" value="Approve" name="authorization"&gt;
+    &lt;input type="submit" value="Deny" name="authorization"&gt;
+&lt;/form&gt;
+</code></pre>
+
+<p>Route:</p>
+
+<pre><code class="language-php">$router-&gt;get('/signin', function (Request $request) use ($server) {
+
+    if (!isset($_POST['authorization'])) {
+        // show form
+    }
 
     // If the user authorizes the request then redirect the user back with an authorization code
 
@@ -154,7 +194,16 @@ $server-&gt;addGrantType($authCodeGrant);
 
     // The user denied the request so redirect back with a message
     else {
-        $redirectUri = $server-&gt;getGrantType('authorization_code')-&gt;generateRedirectUri($authParams);
+
+        $error = new \League\OAuth2\Server\Util\AccessDeniedException;
+
+        $redirectUri = new \League\OAuth2\Server\Util\RedirectUri(
+            $authParams['redirect_uri'],
+            [
+                'error' =&gt;  $error-&gt;errorType,
+                'message'   =&gt;  $e-&gt;getMessage()
+            ]
+        );
 
         $response = new Response('', 302, [
             'Location'  =&gt;  $redirectUri
@@ -199,6 +248,12 @@ $server-&gt;addGrantType($authCodeGrant);
 
 });
 </code></pre>
+
+<h3>Notes</h3>
+
+<ul>
+<li>You could combine the sign-in form and authorize form into one form</li>
+</ul>
     </article>
 </main>
 

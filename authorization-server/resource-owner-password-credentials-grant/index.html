@@ -96,6 +96,8 @@ $passwordGrant-&gt;setVerifyCredentialsCallback(function ($username, $password) 
 });
 </code></pre>
 
+<h2>Implementation</h2>
+
 <p>The client will request an access token so create an <code>/access_token</code> endpoint.</p>
 
 <pre><code class="language-php">$router-&gt;post('/access_token', function (Request $request) use ($server) {
