@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+            <link rel="icon" type="image/x-icon" href="/themes/thephpleague/thephpleague.github.com/img/favicon.ico" />
+                <link rel="apple-touch-icon-precomposed" href="/themes/thephpleague/thephpleague.github.com/img/apple-touch-icon-precomposed.png">
+                <title>Securing your API - OAuth 2.0 Server</title>
+                <meta name="description" content="A standards compliant OAuth 2.0 server">
+                <link rel="stylesheet" href="/themes/thephpleague/thephpleague.github.com/css/all.css">
+    </head>
+<body>
+
+<section class="all_packages">
+    <a href="http://thephpleague.com/">
+        <img src="/themes/thephpleague/thephpleague.github.com/img/loep_logo.png" width="195" height="200" alt="The League of Extraordinary Packages">
+    </a>
+    <h2>Our Packages:</h2>
+    <ul>
+    </ul>
+</section>
+
+<header>
+    <a class="logo" href="/">
+                <span class="name">OAuth 2.0 Server</span>
+        <span class="tagline">PHP, meet OAuth</span>
+    </a>
+    <a href="http://thephpleague.com/" class="league">
+        Presented by The League of Extraordinary Packages
+    </a>
+</header>
+
+<input type="checkbox" id="menu">
+<label for="menu" onclick>
+    <div class="closed">&#9776; Menu</div>
+    <div class="open">&#9776; Hide Menu</div>
+</label>
+
+<main>
+    <menu>
+                    <h2>Getting Started</h2>
+            <ul>
+                                    <li >
+                        <a href="/">Introduction</a>
+                    </li>
+                                    <li >
+                        <a href="/terminology/">Terminology</a>
+                    </li>
+                                    <li >
+                        <a href="/installation/">Installation</a>
+                    </li>
+                                    <li >
+                        <a href="/implementing-storage-interfaces/">Implementing storage interfaces</a>
+                    </li>
+                            </ul>
+                    <h2>Authorization Server</h2>
+            <ul>
+                                    <li >
+                        <a href="/authorization-server/which-grant/">Which grant?</a>
+                    </li>
+                                    <li >
+                        <a href="/authorization-server/auth-code-grant/">Authorization Code Grant</a>
+                    </li>
+                                    <li >
+                        <a href="/authorization-server/client-credentials-grant/">Client Credentials Grant</a>
+                    </li>
+                                    <li >
+                        <a href="/authorization-server/resource-owner-password-credentials-grant/">Password Grant</a>
+                    </li>
+                                    <li >
+                        <a href="/authorization-server/refresh-token-grant/">Refresh Token Grant</a>
+                    </li>
+                                    <li >
+                        <a href="/authorization-server/customisation/">Server Customisation</a>
+                    </li>
+                                    <li >
+                        <a href="/authorization-server/events/">Events</a>
+                    </li>
+                                    <li >
+                        <a href="/authorization-server/custom-token-identifier-generator/">Custom token identifier generator</a>
+                    </li>
+                                    <li >
+                        <a href="/authorization-server/custom-token-types/">Custom token types</a>
+                    </li>
+                                    <li >
+                        <a href="/authorization-server/custom-grants/">Custom grants</a>
+                    </li>
+                            </ul>
+                    <h2>Resource Server</h2>
+            <ul>
+                                    <li >
+                        <a href="/resource-server/securing-your-api/">Securing your API</a>
+                    </li>
+                            </ul>
+            </menu>
+    <article>
+        <h1>Securing your API</h1>
+
+<h2>Setup</h2>
+
+<p>Wherever you intialise your objects, initialize a new instance of the resource server with the storage interfaces:</p>
+
+<pre><code class="language-php">$sessionStorage = new Storage\SessionStorage();
+$accessTokenStorage = new Storage\AccessTokenStorage();
+$clientStorage = new Storage\ClientStorage();
+$scopeStorage = new Storage\ScopeStorage();
+
+$server = new ResourceServer(
+    $sessionStorage,
+    $accessTokenStorage,
+    $clientStorage,
+    $scopeStorage
+);
+</code></pre>
+
+<h2>Implementation</h2>
+
+<h2>Checking for valid access tokens</h2>
+
+<p>Before your API responds you need to check that an access token has been presented with the request (either in the query string <code>?access_token=abcdef</code> or as an authorization header <code>Authorization: Bearer abcdef</code>).</p>
+
+<p>If you’re using a framework such as Laravel or Symfony you could use a route filter to do this. With the Slim framework you would use middleware.</p>
+
+<p>This example uses Orno\Route:</p>
+
+<pre><code class="language-php">try {
+
+    // Check that an access token is present and is valid
+    $server-&gt;isValidRequest();
+
+    // A successful response
+    $response = $dispatcher-&gt;dispatch(
+        $request-&gt;getMethod(),
+        $request-&gt;getPathInfo()
+    );
+
+} catch (\League\OAuth2\Server\Exception\OAuthException $e) {
+
+    // Catch an OAuth exception
+    $response = new Response(json_encode([
+        'error'     =&gt;  $e-&gt;errorType,
+        'message'   =&gt;  $e-&gt;getMessage()
+    ]), $e-&gt;httpStatusCode);
+
+    foreach ($e-&gt;getHttpHeaders() as $header) {
+        $response-&gt;headers($header);
+    }
+
+} catch (\Orno\Http\Exception $e) {
+
+       // A failed response (thrown by code)
+       $response = $e-&gt;getJsonResponse();
+       $response-&gt;setContent(json_encode(['status_code' =&gt; $e-&gt;getStatusCode(), 'message' =&gt; $e-&gt;getMessage()]));
+
+} catch (\Exception $e) {
+
+    // Other server error (500)
+    $response = new Orno\Http\Response;
+    $response-&gt;setStatusCode(500);
+    $response-&gt;setContent(json_encode(['status_code' =&gt; 500, 'message' =&gt; $e-&gt;getMessage()]));
+
+} finally {
+
+    // Return the response
+    $response-&gt;headers-&gt;set('Content-type', 'application/json');
+    $response-&gt;send();
+
+}
+</code></pre>
+
+<p>When <code>$server-&gt;isValidRequest()</code> is called the library will run the following tasks:</p>
+
+<ul>
+<li>Check if an access token is present in the query string
+
+<ul>
+<li>If not, check if an access token is contained in an <code>authorization</code> header.
+
+<ul>
+<li>If not, throw League\OAuth2\Server\Exception\InvalidAccessTokenException`</li>
+</ul></li>
+</ul></li>
+<li>Check if the access token is valid with the database
+
+<ul>
+<li>If not, throw <code>League\OAuth2\Server\Exception\AccessDeniedException</code></li>
+</ul></li>
+<li>If the access token is valid:
+
+<ul>
+<li>Get the token's owner type (e.g. “user” or “client”) and their ID</li>
+<li>Get a list of any scopes that are associated with the access token</li>
+</ul></li>
+</ul>
+
+<p>Assuming an exception isn’t thrown you can then use the following functions in your API code:</p>
+
+<ul>
+<li><code>getOwnerType()</code> - This will return the type of the owner of the access token. For example if a user has authorized another client to use their resources the owner type would be “user”.</li>
+<li><code>getOwnerId()</code> - This will return the ID of the access token owner. You can use this to check if the owner has permission to do take some sort of action (such as retrieve a document or upload a file to a folder).</li>
+<li><code>getClientId()</code> - Returns the ID of the client that was involved in creating the session that the access token is linked to.</li>
+<li><code>getAccessToken()</code> - Returns the access token used in the request.</li>
+<li><code>hasScope()</code> - You can use this function to see if a specific scope (or several scopes) has been associated with the access token. You can use this to limit the contents of an API response or prevent access to an API endpoint without the correct scope.</li>
+<li><code>getScopes()</code> - Returns all scopes attached to the access token.</li>
+</ul>
+
+<h2>A simple example</h2>
+
+<p>This example endpoint will return a user’s information if a valid access token is present. If the access token has the <code>email</code> scope then the user's email address will be included in the response. Likewise if the <code>photo</code> scope is available the user's photo is included.</p>
+
+<pre><code class="language-php">$router-&gt;get('/users/{username}', function (Request $request, $args) use ($server) {
+
+    $result = (new Model\Users())-&gt;get($args['username']);
+
+    if (count($result) === 0) {
+        throw new NotFoundException();
+    }
+
+    $user = [
+        'username'  =&gt;  $result[0]['username'],
+        'name'      =&gt;  $result[0]['name']
+    ];
+
+    if ($server-&gt;hasScope('email')) {
+        $user['email'] = $result[0]['email'];
+    }
+
+    if ($server-&gt;hasScope('photo')) {
+        $user['photo'] = $result[0]['photo'];
+    }
+
+    return new Response(json_encode($user));
+});
+</code></pre>
+
+<h2>Limiting an endpoint to a specific owner type</h2>
+
+<p>In this example, only a user’s access token is valid:</p>
+
+<pre><code class="language-php">if ($server-&gt;getOwnerType() !== 'user') {
+    throw new Exception\AccessDeniedException;
+}
+</code></pre>
+
+<h2>Limiting an endpoint to a specific owner type and scope</h2>
+
+<p>In this example, the endpoint will only respond to access tokens that are owner by client applications and that have the scope <code>users.list</code>.</p>
+
+<pre><code class="language-php">if ($server-&gt;getOwnerType() !== 'client' &amp;&amp; $server-&gt;hasScope('users.list')) {
+    throw new Exception\AccessDeniedException;
+}
+</code></pre>
+
+<p>You might secure an endpoint in this way to only allow specific clients (such as your applications’ main website) access to private APIs.</p>
+
+<h2>Return resource based on access token owner</h2>
+
+<pre><code class="language-php">$photos = $model-&gt;getPhotos($server-&gt;getOwnerId());
+</code></pre>
+
+<p>Hopefully you can see how easy it is to secure an API with OAuth 2.0 and how you can use scopes to limit response contents or access to endpoints.</p>
+    </article>
+</main>
+
+<footer>
+    <span>&copy; Copyright The League of Extraordinary Packages.</span>
+    <span>Site design by <a href="http://reinink.ca">Jonathan Reinink</a>.</span>
+    <span>Powered by <a href="https://sculpin.io">Sculpin</a>.</span>
+</footer>
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="/themes/thephpleague/thephpleague.github.com/js/scripts.js"></script>
+<script src="/themes/thephpleague/thephpleague.github.com/js/prism.js"></script>
+
+    <script>
+        (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
+        function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;
+        e=o.createElement(i);r=o.getElementsByTagName(i)[0];
+        e.src='//www.google-analytics.com/analytics.js';
+        r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));
+        ga('create','UA-46050814-5');ga('send','pageview');
+    </script>
+
+</body>
+</html>

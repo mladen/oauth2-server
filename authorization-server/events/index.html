@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
             <link rel="icon" type="image/x-icon" href="/themes/thephpleague/thephpleague.github.com/img/favicon.ico" />
                 <link rel="apple-touch-icon-precomposed" href="/themes/thephpleague/thephpleague.github.com/img/apple-touch-icon-precomposed.png">
-                <title>Installation - OAuth 2.0 Server</title>
+                <title>Authorization server events - OAuth 2.0 Server</title>
                 <meta name="description" content="A standards compliant OAuth 2.0 server">
                 <link rel="stylesheet" href="/themes/thephpleague/thephpleague.github.com/css/all.css">
     </head>
@@ -95,67 +95,9 @@
                             </ul>
             </menu>
     <article>
-        <h1>Implementing the storage interfaces</h1>
+        <h1>Authorization server events</h1>
 
-<p>In order to use both the resource server and authorization server you need need to implement a number of interfaces.</p>
-
-<p>If you are using the resource server you need to implement the following interfaces:</p>
-
-<ul>
-<li><code>League\OAuth2\Server\Storage\SessionInterface</code> - contains methods for retrieving and setting sessions</li>
-<li><code>League\OAuth2\Server\Storage\AccessTokenInterface</code> - contains methods for retrieving, creating and deleting access tokens</li>
-<li><code>League\OAuth2\Server\Storage\ClientStorage</code> - single method to get a client</li>
-<li><code>League\OAuth2\Server\Storage\ScopeStorage</code> - single method to get a scope</li>
-</ul>
-
-<p>If you are using the authorization server you need to implement the following interfaces:</p>
-
-<ul>
-<li><code>League\OAuth2\Server\Storage\SessionInterface</code> - contains methods for retrieving and setting sessions</li>
-<li><code>League\OAuth2\Server\Storage\AccessTokenInterface</code> - contains methods for retrieving, creating and deleting access tokens</li>
-<li><code>League\OAuth2\Server\Storage\ClientStorage</code> - single method to get a client</li>
-<li><code>League\OAuth2\Server\Storage\ScopeStorage</code> - single method to get a scope</li>
-</ul>
-
-<p>If you are using the authorization code grant you also need to implement:</p>
-
-<ul>
-<li><code>League\OAuth2\Server\Storage\AuthCodeInterface</code> - contains methods for retrieving, creating and deleting authorization codes</li>
-</ul>
-
-<p>If you are using the refresh token grant you also need to implement:</p>
-
-<ul>
-<li><code>League\OAuth2\Server\Storage\RefreshTokenInterface</code> - contains methods for retrieving, creating and deleting refresh tokens</li>
-</ul>
-
-<p>Once you have written your class implementations then inject them into the server like so:</p>
-
-<pre><code class="language-php">// Resource server
-$sessionStorage = new Storage\SessionStorage();
-$accessTokenStorage = new Storage\AccessTokenStorage();
-$clientStorage = new Storage\ClientStorage();
-$scopeStorage = new Storage\ScopeStorage();
-
-$server = new ResourceServer(
-    $sessionStorage,
-    $accessTokenStorage,
-    $clientStorage,
-    $scopeStorage
-);
-
-// Authorization server
-$server-&gt;setSessionStorage(new Storage\SessionStorage);
-$server-&gt;setAccessTokenStorage(new Storage\AccessTokenStorage);
-$server-&gt;setRefreshTokenStorage(new Storage\RefreshTokenStorage);
-$server-&gt;setClientStorage(new Storage\ClientStorage);
-$server-&gt;setScopeStorage(new Storage\ScopeStorage);
-$server-&gt;setAuthCodeStorage(new Storage\AuthCodeStorage);
-</code></pre>
-
-<p>If you are using a relational database you can find some example storage implementations in the <code>examples/relational</code> folder in the codebase.</p>
-
-<p>You don't have to use a database to store all of your settings</p>
+<h2>TODO</h2>
     </article>
 </main>
 
