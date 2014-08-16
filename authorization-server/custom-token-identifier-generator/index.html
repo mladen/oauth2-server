@@ -97,7 +97,13 @@
     <article>
         <h1>Authorization server custom token identifier generator</h1>
 
-<h2>TODO</h2>
+<p>The authorization server generates token identifiers for use with authorization codes, access tokens and refresh tokens.</p>
+
+<p>The built-in algorithm generates codes which are 40 characters in length and requires the OpenSSL extension to generate highly random identifiers.</p>
+
+<p>If you don't have the OpenSSL extension installed or require custom length or identifiers then you can implement the <code>League\OAuth2\Server\Util\KeyAlgorithm\KeyAlgorithmInterface</code>.</p>
+
+<p>To register the new generator call <code>\League\OAuth2\Server\Util\SecureKey::setAlgorithm(new MyAlgorithm);</code> <strong>before</strong> <code>issueAccessToken</code> is called on the authorization server.</p>
     </article>
 </main>
 
