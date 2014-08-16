@@ -97,7 +97,88 @@
     <article>
         <h1>Authorization server custom grants</h1>
 
-<h2>TODO</h2>
+<p>Creating your own grant is simple, just need to write a class that implements <code>League\OAuth2\Server\Grant\GrantTypeInterface</code> and extends <code>League\OAuth2\Server\Grant\AbstractGrant</code>.</p>
+
+<p>Once you've written it you can enable it like so:</p>
+
+<pre><code class="php">$server-&gt;addGrantType(new MyGrantType($server));
+</code></pre>
+
+<p>Before creating your own grant you should check out the existing grants to see best practise - <a href="https://github.com/thephpleague/oauth2-server/tree/master/src/Grant">https://github.com/thephpleague/oauth2-server/tree/master/src/Grant</a>.</p>
+
+<hr />
+
+<h2>The following properties need to be set:</h2>
+
+<h3><code>protected $identifier</code></h3>
+
+<p>This property is used to identify the grant. When a client requests an access token it will set a <code>grant_type</code> key in the request - when the value of <code>grant_type</code> matches the identifier it will use this grant.</p>
+
+<h2>The following methods need to be implemented:</h2>
+
+<h3><code>public completeFlow()</code></h3>
+
+<p>This method is called by the Authorization server class once it has asserted that the grant type being used by the client is your custom grant.</p>
+
+<p>You should validate all of the data required to complete the flow, remember it is POSTed to the server. You can check values have been set in the request and do any other custom logic like so:</p>
+
+<pre><code class="language-php">$property = $this-&gt;server-&gt;getRequest()-&gt;request-&gt;get('my_property', null);
+if (is_null($property)) {
+    throw new Exception\InvalidRequestException('my_property');
+} else {
+    // custom validation here
+}
+</code></pre>
+
+<p>You can validate the client like so (remember to set the <code>$clientId</code> and <code>$cleintSecret</code> variables by capturing the relevant data from the request as above):</p>
+
+<pre><code class="language-php">$client = $this-&gt;server-&gt;getStorage('client')-&gt;get(
+    $clientId,
+    $clientSecret,
+    null,
+    $this-&gt;getIdentifier()
+);
+
+if (($client instanceof ClientEntity) === false) {
+    throw new Exception\InvalidClientException();
+}
+</code></pre>
+
+<p>Scopes can be validated like so:</p>
+
+<pre><code class="language-php">$scopeParam = $this-&gt;server-&gt;getRequest()-&gt;request-&gt;get('scope', '');
+$scopes = $this-&gt;validateScopes($scopeParam);
+</code></pre>
+
+<p>Finally you should create a new session, associate an access token and scopes and then return the access token:</p>
+
+<pre><code class="language-php">// Create a new session
+$session = new SessionEntity($this-&gt;server);
+$session-&gt;setOwner('client', $client-&gt;getId());
+$session-&gt;associateClient($client);
+
+// Generate an access token
+$accessToken = new AccessTokenEntity($this-&gt;server);
+$accessToken-&gt;setId(SecureKey::generate());
+$accessToken-&gt;setExpireTime($this-&gt;server-&gt;getAccessTokenTTL() + time());
+
+// Associate scopes with the session and access token
+foreach ($scopes as $scope) {
+    $accessToken-&gt;associateScope($scope);
+    $session-&gt;associateScope($scope);
+}
+
+// Save everything
+$session-&gt;save($this-&gt;server-&gt;getStorage('session'));
+$accessToken-&gt;setSession($session);
+$accessToken-&gt;save($this-&gt;server-&gt;getStorage('access_token'));
+
+$this-&gt;server-&gt;getTokenType()-&gt;set('access_token', $accessToken-&gt;getId());
+$this-&gt;server-&gt;getTokenType()-&gt;set('expires_in', $this-&gt;server-&gt;getAccessTokenTTL());
+
+// Return the access token
+return $this-&gt;server-&gt;getTokenType()-&gt;generateResponse();
+</code></pre>
     </article>
 </main>
 
